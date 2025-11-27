@@ -34,6 +34,21 @@ export class Usuario {
   @Column({ nullable: true })
   mfa_secret: string;
 
+  @Column({ default: 0 })
+  failed_login_attempts: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  locked_until: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  last_failed_login: Date;
+
+  @Column({ nullable: true })
+  refresh_token: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  refresh_token_expires: Date;
+
   @ManyToOne(() => Tienda, (tienda) => tienda.usuarios)
   @JoinColumn({ name: 'tienda_id' })
   tienda: Tienda;

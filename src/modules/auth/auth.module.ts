@@ -10,6 +10,7 @@ import { Rol } from '../../entities/rol.entity';
 import { Tienda } from '../../entities/tienda.entity';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { EncryptionService } from '../../common/services/encryption.service';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, LocalStrategy, JwtStrategy, EncryptionService],
+  exports: [AuthService, EncryptionService],
 })
 export class AuthModule {}

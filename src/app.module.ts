@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { TiendasModule } from './modules/tiendas/tiendas.module';
 import { ProductosModule } from './modules/productos/productos.module';
@@ -24,6 +26,29 @@ import { Auditoria } from './entities/auditoria.entity';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    // Rate limiting configuration
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          {
+            name: 'short',
+            ttl: configService.get('THROTTLE_SHORT_TTL', 1000), // 1 second
+            limit: configService.get('THROTTLE_SHORT_LIMIT', 3), // 3 requests per second
+          },
+          {
+            name: 'medium',
+            ttl: configService.get('THROTTLE_MEDIUM_TTL', 10000), // 10 seconds
+            limit: configService.get('THROTTLE_MEDIUM_LIMIT', 20), // 20 requests per 10 seconds
+          },
+          {
+            name: 'long',
+            ttl: configService.get('THROTTLE_LONG_TTL', 60000), // 1 minute
+            limit: configService.get('THROTTLE_LONG_LIMIT', 100), // 100 requests per minute
+          },
+        ],
+      }),
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -58,6 +83,13 @@ import { Auditoria } from './entities/auditoria.entity';
     ProductosModule,
     InventariosModule,
     MovimientosModule,
+  ],
+  providers: [
+    // Apply rate limiting globally
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
